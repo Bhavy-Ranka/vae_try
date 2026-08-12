@@ -122,7 +122,7 @@ def main():
         for seg_id, seg in enumerate(segments):
             feats = extract_features(seg, FS)
             feats.update({
-                "fault_type": fault_type,
+                "label": fault_type,
                 "fault_size_inch": fault_size,
                 "load_hp": load,
                 "rpm": LOAD_RPM_MAP.get(load),
@@ -131,7 +131,7 @@ def main():
             rows.append(feats)
 
     df = pd.DataFrame(rows)
-    ordered_cols = ["fault_type", "fault_size_inch", "load_hp", "rpm", "segment_id",
+    ordered_cols = ["label", "fault_size_inch", "load_hp", "rpm", "segment_id",
                      "mean", "RMS", "standard_deviation", "crest_factor", "skewness",
                      "shape_factor", "kurtosis", "peak_to_peak", "energy_factor",
                      "impulse_factor", "peak_frequency", "peak_to_peak_frequency",
@@ -139,7 +139,7 @@ def main():
     df = df[ordered_cols]
     df.to_csv(OUTPUT_CSV, index=False)
     print(f"\nSaved {len(df)} rows x {len(ordered_cols)} cols to {OUTPUT_CSV}")
-    print(df["fault_type"].value_counts())
+    print(df["label"].value_counts())
 
 if __name__ == "__main__":
     main()
