@@ -14,6 +14,7 @@ LABEL_COL = "label"
 
 # 10% original data to train and 9 times more synthetic data than real data
 SOURCE_SAMPLE_RATIO = 0.10
+# 9 , 8 , 10, 20, 50, 100, 500
 SYNTHETIC_TO_REAL_RATIO = 9
 
 LATENT_DIM = 8
@@ -90,7 +91,6 @@ def generate_samples(model, n_samples, latent_dim, scaler):
         x_gen = model.decode(z).numpy()
     return scaler.inverse_transform(x_gen)
 
-
 def main():
     df = pd.read_csv(CSV_PATH)
     classes = sorted(df[LABEL_COL].unique())
@@ -112,7 +112,7 @@ def main():
         scaler = StandardScaler()
         x_train = scaler.fit_transform(train_df[FEATURE_COLS].values)
 
-        print(f"\n[Class {cls}] Available: {n_available} | 10% Real Source Train: {n_train} | 90% VAE Synthetic Gen: {n_gen}")
+        print(f"\n[Class {cls}] Available: {n_available} | {SOURCE_SAMPLE_RATIO*100}% Real Source Train: {n_train} | {SYNTHETIC_TO_REAL_RATIO*100}% VAE Synthetic Gen: {n_gen}")
         model = train_vae_for_class(x_train, EPOCHS, BATCH_SIZE, LR, LATENT_DIM, HIDDEN_DIM, BETA)
 
         x_gen = generate_samples(model, n_gen, LATENT_DIM, scaler)
@@ -124,13 +124,13 @@ def main():
     synthetic_df = pd.concat(synthetic_rows, ignore_index=True)
     combined_df = pd.concat([real_df, synthetic_df], ignore_index=True)
 
-    combined_out_name = "cwru_10real_90synthetic.csv"
+    combined_out_name = f"cwru_10real_{SYNTHETIC_TO_REAL_RATIO*10}synthetic.csv"
     combined_df.to_csv(combined_out_name, index=False)
 
-    synth_out_name = "cwru_vae_synthetic_only.csv"
+    synth_out_name = f"cwru_vae_synthetic_only{SYNTHETIC_TO_REAL_RATIO}.csv"
     synthetic_df.to_csv(synth_out_name, index=False)
     print(f"Real source samples used (10%): {len(real_df)}")
-    print(f"Synthetic VAE samples (90%):    {len(synthetic_df)}")
+    print(f"Synthetic VAE samples ({SYNTHETIC_TO_REAL_RATIO}X):    {len(synthetic_df)}")
     print(f"Total combined rows:           {len(combined_df)}")
     print(f"Saved combined dataset to:     {combined_out_name}")
     print(f"Saved synthetic dataset to:    {synth_out_name}")
