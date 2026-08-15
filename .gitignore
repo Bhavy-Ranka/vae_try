@@ -4,3 +4,5 @@ seu_bearing
 cwru_features.csv
 ottawa_features.csv
 seu_features.csv
+cwru_10real_90synthetic.csv
+cwru_vae_synthetic_only9.csv

@@ -6,7 +6,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 
-df = pd.read_csv("seu_features.csv")
+df = pd.read_csv("cwru_features.csv")
 
 feature_columns = [
     "mean", "RMS", "standard_deviation",
