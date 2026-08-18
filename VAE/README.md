@@ -1,4 +1,4 @@
-# VAE Synthetic Data Quality — Ratio Results
+# VAE Synthetic Data Quality Ratio Results
 
 ## 1. What this experiment measures
 
@@ -10,7 +10,7 @@ For each dataset (CWRU, Ottawa, SEU) and each real-data fraction (5%, 10%, 20%),
 4. At each checkpoint ratio (5x, 10x, 15x, 20x, 30x, 40x, 50x, 75x, 100x, 250x, [500x, 1000x for CWRU/SEU]), generates `n_train × ratio` synthetic rows per class from the **frozen** VAE.
 5. Evaluates the **frozen, real-data-trained CNN** on this synthetic data and records accuracy.
 
-**Critical framing:** this accuracy is *not* "does synthetic data help train a better classifier" (that would require training a new CNN on synthetic + real and testing on held-out real data). It is a **fidelity proxy**: does the CNN — which has only ever seen real data — still recognize the synthetic samples as belonging to the class the VAE intended? High accuracy means the VAE's outputs sit inside the real-data class boundaries the CNN learned; low accuracy means the VAE is drifting into feature-space regions the CNN doesn't associate with that class.
+**Critical framing:** this accuracy is *not* "does synthetic data help train a better classifier" (that would require training a new CNN on synthetic + real and testing on held-out real data). It is a **fidelity proxy**: does the CNN  which has only ever seen real data  still recognize the synthetic samples as belonging to the class the VAE intended? High accuracy means the VAE's outputs sit inside the real-data class boundaries the CNN learned; low accuracy means the VAE is drifting into feature-space regions the CNN doesn't associate with that class.
 
 Feature set (15 dims, all runs): mean, RMS, standard deviation, crest factor, skewness, shape factor, kurtosis, peak-to-peak, energy factor, impulse factor, peak frequency, peak-to-peak frequency, spectral kurtosis, spectral bandwidth, spectral skewness.
 
@@ -18,7 +18,7 @@ Feature set (15 dims, all runs): mean, RMS, standard deviation, crest factor, sk
 
 ## 2. Real-data CNN baseline
 
-Before looking at synthetic data at all, this is how well the CNN classifies **held-out real data** (the 10% test split), trained on the 90% real split — this is the frozen classifier used to score all synthetic samples in section 3.
+Before looking at synthetic data at all, this is how well the CNN classifies **held-out real data** (the 10% test split), trained on the 90% real split  this is the frozen classifier used to score all synthetic samples in section 3.
 
 | Dataset | Baseline accuracy (real, 90/10 split) | Notes |
 |---|---|---|
@@ -32,7 +32,7 @@ Before looking at synthetic data at all, this is how well the CNN classifies **h
 
 ### 3.1 CWRU
 
-| Ratio | 5% real — acc | 10% real — acc | 20% real — acc |
+| Ratio | 5% real  acc | 10% real  acc | 20% real  acc |
 |---|---|---|---|
 | 5x | 97.67% | 96.01% | 97.47% |
 | 10x | 98.22% | 96.49% | 97.23% |
@@ -49,7 +49,7 @@ Before looking at synthetic data at all, this is how well the CNN classifies **h
 
 ### 3.2 Ottawa
 
-| Ratio | 5% real — acc | 10% real — acc | 20% real — acc |
+| Ratio | 5% real  acc | 10% real  acc | 20% real  acc |
 |---|---|---|---|
 | 5x | 92.69% | 94.07% | 95.66% |
 | 10x | 93.31% | 93.95% | 95.16% |
@@ -64,7 +64,7 @@ Before looking at synthetic data at all, this is how well the CNN classifies **h
 
 ### 3.3 SEU
 
-| Ratio | 5% real — acc | 10% real — acc | 20% real — acc |
+| Ratio | 5% real  acc | 10% real  acc | 20% real  acc |
 |---|---|---|---|
 | 5x | 73.65% | 71.14% | 73.55% |
 | 10x | 74.43% | 72.02% | 72.93% |
@@ -79,32 +79,31 @@ Before looking at synthetic data at all, this is how well the CNN classifies **h
 | 500x | 74.29% | 71.05% | 73.12% |
 | 1000x | 74.35% | 70.87% | 73.18% |
 
----
+### 3.4 Single shared VAE (CVAE)  20% real, one model for all classes
 
-## 4. Analysis
+Same architecture (1 hidden layer, 32 units, 8-dim latent, β=0.5, 300 epochs) but trained **once** as a class-conditional VAE on the pooled 20%-real subset across all classes, instead of a separate VAE per class. Class identity is passed in as a one-hot conditioning vector on both encoder and decoder input. The frozen real-data CNN from section 2 is reused unchanged as the fidelity scorer.
 
-### 4.1 Every curve has the same two-phase shape
-
-**Phase 1 (ratio 5x–50x): volatile spikes and dips.**
-`n_gen = n_train × ratio`, and `n_train` is only tens to a few hundred rows per class at these fractions. At ratio 5x with 5% real data, that's often under 200 synthetic samples per class total — small enough that a handful of atypical VAE draws swing the measured accuracy by a full percentage point or more. This is sampling variance, not evidence that the VAE is "better" or "worse" at these specific ratios.
-
-**Phase 2 (ratio ≥100x): flat plateau.**
-Once tens of thousands of samples are being drawn from the same frozen VAE, the law of large numbers takes over and the curve converges to the VAE's true generation quality. Because the VAE itself is never retrained between checkpoints, more synthetic volume past this point doesn't improve anything — it only tightens the accuracy estimate around a fixed value. Generating 1000x synthetic data buys essentially nothing over 100x–250x in any of the 9 runs.
-
-**Practical implication:** treat only the plateau region (≥100x, ideally ≥250x) as meaningful signal. Anything drawn from the 5x–50x region is dominated by noise.
-
-### 4.2 Dataset ceiling: it's mostly VAE fidelity, not CNN capacity
-
-Now that the real-data baselines are known, the right comparison isn't "how close is synthetic accuracy to 100%" — it's **how close is synthetic accuracy to that dataset's own baseline**. That gap isolates VAE fidelity loss from whatever ceiling the CNN itself imposes.
-
-| Dataset | Baseline (real) | Plateau range (synthetic) | Approx. gap to baseline |
+| Ratio | CWRU  acc | Ottawa  acc | SEU  acc |
 |---|---|---|---|
-| CWRU | 99.49% | 96.8% – 98.2% | **~1.3 – 2.7 pp** |
-| Ottawa | 99.51% | 92.4% – 95.7% | **~3.8 – 7.1 pp** |
-| SEU | 91.78% | 70.5% – 74.4% | **~17.4 – 21.3 pp** |
+| 5x | 95.00% | 92.19% | 83.14% |
+| 10x | 95.03% | 91.65% | 82.68% |
+| 15x | 94.57% | 92.05% | 82.23% |
+| 20x | 94.79% | 92.10% | 82.31% |
+| 30x | 94.78% | 91.84% | 82.28% |
+| 40x | 94.52% | 91.82% | 81.81% |
+| 50x | 94.74% | 91.88% | 82.05% |
+| 75x | 94.72% | 91.95% | 81.97% |
+| 100x | 94.89% | 91.90% | 82.01% |
+| 250x | 94.88% | 91.96% | 81.99% |
+| 500x | 94.77% | 91.97% | 82.15% |
+| 1000x | 94.79% | 91.93% | 82.10% |
 
-This changes the earlier conclusion meaningfully. SEU's baseline (91.78%) is not dramatically worse than CWRU's or Ottawa's near-perfect scores — it's a respectable classifier. But the synthetic-data gap for SEU is **6–10x larger** than CWRU's and roughly **3x larger** than Ottawa's. That means SEU's poor synthetic-accuracy numbers are overwhelmingly a **VAE fidelity failure**, not a "the CNN itself struggles with SEU" story as originally hypothesized.
+The same two-phase shape (volatile 5x–50x, flat plateau ≥100x) shows up here too, confirming the sampling-variance explanation from §4.1 isn't specific to per-class VAEs  it's a property of small generation counts in general.
 
-- **CWRU**: the VAE reproduces the real-data class structure almost perfectly (gap under 3pp at every real-data fraction). This tiny 1-hidden-layer VAE is basically sufficient for CWRU's 15-feature space.
-- **Ottawa**: a moderate, real fidelity loss (4–7pp), improving as real-data fraction increases — consistent with a VAE that's slightly under-capacity or under-trained for this feature distribution, but recoverable with more real data.
-- **SEU**: a large, fraction-independent fidelity loss (~17–21pp) that doesn't meaningfully shrink even at 20% real data. This is the signature of the VAE **structurally failing** to capture SEU's class-conditional distributions — most likely because SEU's compound gearbox+bearing fault signatures produce feature distributions with much more inter-class overlap than CWRU or Ottawa, which this small linear-hidden-layer VAE (8-dim latent, MSE loss) doesn't have the capacity to separate. More real training rows for the VAE doesn't fix this, which points to an architecture/capacity limitation rather than a data-scarcity one.
+**Per-class VAE vs. single shared CVAE, plateau region (≥100x), 20% real:**
+
+| Dataset | Baseline | Per-class VAE plateau | Per-class gap | Single CVAE plateau | Single CVAE gap | Change |
+|---|---|---|---|---|---|---|
+| CWRU | 99.49% | 97.20–97.28% | ~2.2–2.3pp | 94.77–94.89% | ~4.6–4.7pp | **worse, ~2.4pp** |
+| Ottawa | 99.51% | 95.47–95.51% | ~4.0pp | 91.90–91.97% | ~7.5–7.6pp | **worse, ~3.5pp** |
+| SEU | 91.78% | 73.06–73.18% | ~18.6–18.7pp | 81.99–82.15% | ~9.6–9.8pp | **better, ~9pp (gap nearly halved)** |
