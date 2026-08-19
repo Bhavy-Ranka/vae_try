@@ -14,14 +14,24 @@ import matplotlib.pyplot as plt
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
-CSV_PATH = "seu_features.csv"
-FEATURE_COLS = ["mean", "RMS", "standard_deviation", "crest_factor", "skewness",
-                 "shape_factor", "kurtosis", "peak_to_peak", "energy_factor",
-                 "impulse_factor", "peak_frequency", "peak_to_peak_frequency",
-                 "spectral_kurtosis", "spectral_bandwidth", "spectral_skewness"]
+CSV_PATH = "seu_features2.csv"
+
+# FOR SEU_1
+
+# FEATURE_COLS = ["mean", "RMS", "standard_deviation", "crest_factor", "skewness",
+#                  "shape_factor", "kurtosis", "peak_to_peak", "energy_factor",
+#                  "impulse_factor", "peak_frequency", "peak_to_peak_frequency",
+#                  "spectral_kurtosis", "spectral_bandwidth", "spectral_skewness"]
+
+# FOR SEU_2 , 
+FEATURE_COLS = ["mean", "std", "rms", "peak", "peak_to_peak", "skewness", "kurtosis", "crest_factor",
+ "shape_factor", "impulse_factor", "clearance_factor", "margin_factor", "energy", "spectral_centroid",
+  "peak_frequency", "peak_amplitude", "spectral_bandwidth", "spectral_skewness",
+   "spectral_kurtosis", "spectral_entropy", "rms_frequency"]
+
 LABEL_COL = "label"
 
-SOURCE_SAMPLE_RATIO = 0.20
+SOURCE_SAMPLE_RATIO = 0.05
 CHECKPOINT_RATIOS = [5, 10, 15, 20, 30, 40, 50, 75, 100, 250]
 
 LATENT_DIM = 8
@@ -191,7 +201,7 @@ def main():
     plt.ylabel("CNN accuracy on synthetic data (%)")
     plt.title("Synthetic data quality vs generation ratio (fixed VAE, fixed CNN)")
     plt.grid(True)
-    plt.savefig(f"{SOURCE_SAMPLE_RATIO*100}ottawa_vae_ratio_sweep_plot.png", dpi=150, bbox_inches="tight")
+    plt.savefig(f"{SOURCE_SAMPLE_RATIO*100}seu2_vae_ratio_sweep_plot.png", dpi=150, bbox_inches="tight")
     # print("saved vae_ratio_sweep_plot.png")
 
 if __name__ == "__main__":
